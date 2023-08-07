@@ -90,4 +90,116 @@ tabla_AQI_espanol <- categorias_espanol |>
 tabla_AQI_espanol
 ```
 
+d. Obtenga el promedio del AQI Value por país, y cree 2 tablas: Una que muestre los 10 países con los valores más bajos de AQI, y otra que muestre los 10 países con los valores más altos de AQI. Presente estas tablas con el paquete gt, añadiendo títulos y subtítulos (10pts)
 
+```{r}
+promedio_pais_AQI <- datos_AQI |> 
+  group_by(Pais) |> 
+  summarise(Promedio_Pais = mean(AQI_Value))
+```
+
+```{r}
+paises_valores_bajos <- promedio_pais_AQI |> 
+  arrange(Promedio_Pais) |> 
+  head(10)
+```
+
+
+```{r}
+tabla_paises_valores_bajos <- paises_valores_bajos|> 
+  gt() |> 
+  tab_header(title = "Paises con valores bajos de AQI", 
+            subtitle = "Según promedio AQI VALUE") 
+```
+
+
+```{r}
+tabla_paises_valores_bajos
+```
+
+```{r}
+paises_valores_altos <- promedio_pais_AQI |> 
+  arrange(desc(Promedio_Pais)) |> 
+  head(10)
+```
+
+```{r}
+tabla_paises_valores_altos <- paises_valores_altos|> 
+  gt() |> 
+  tab_header(title = "Paises con valores mas altos", 
+            subtitle = "Según promedio AQI VALUE") 
+```
+
+```{r}
+tabla_paises_valores_altos
+```
+
+e. Para los 10 países con los valores promedios más altos de AQI, muestrelos en un mapa de leaflet usando
+addMarkers o un addCircles. En el popup debe colocar el valor promedio del AQI. (6pts)
+
+```{r}
+promedio_ciudades <- datos_AQI |> 
+  group_by(Ciudad) |> 
+  summarise(Promedio_Ciudad = mean(AQI_Value))
+```
+
+```{r}
+ciudades_valores_altos <- promedio_ciudades |> 
+  arrange(desc(Promedio_Ciudad)) |> 
+  head(10)
+```
+
+
+```{r}
+Ciudad_latitud_longitud <-merge(ciudades_valores_altos, 
+                        datos_air[c("Ciudad", "lat", "ing")], by = "Ciudad")
+```
+
+```{r}
+Arrange_Ciudad_lat_long <- Ciudad_latitud_longitud |> 
+  arrange(Promedio_Ciudad) |> 
+  head(10)
+```
+
+
+```{r}
+Mapa_Paises_altos <- Arrange_Ciudad_lat_long |>
+  leaflet() |>
+  addTiles() |>
+  addMarkers(lng = ~ing, lat = ~lat, popup = ~Ciudad)
+
+Mapa_Paises_altos
+```
+
+f. Escriba el código que exporte los datos en un excel, de tal manera que cada pestaña tenga solamente
+los datos de una categoría de AQI. (Es decir una pestaña para las ciudades cuya categoría es “Good”
+o “Buena”, otra para los que la categoría es “Moderate” y así para cada cateoría). (5pts)
+
+
+```{r}
+datos_AQI_excel <- list(
+  "Good" = datos_AQI |> 
+    filter(AQI_Category == "Good"),
+  
+  "Unhealthy for Sensitive Groups" = datos_AQI |> 
+    filter(AQI_Category == "Unhealthy for Sensitive Groups"),
+  
+  "Moderate" = datos_AQI |> 
+    filter(AQI_Category == "Moderate"),
+  
+  "Unhealthy" = datos_AQI |> 
+    filter(AQI_Category == "Unhealthy"),
+  
+  "Very Unhealthy" = datos_AQI |> 
+    filter(AQI_Category == "Very Unhealthy"),
+  
+  "Hazardous" = datos_AQI |> 
+    filter(AQI_Category == "Hazardous")
+)
+```
+
+```{r}
+write_xlsx(datos_AQI_excel, path = "C:/Users/Familiar/Desktop/Cuatri Agosto/Taller de Programación para Ánalisis de Datos II (R Studio)/Tareas/Programada_2/Tarea Programada 2/Datos/datos_AQI_excel.xlsx")
+```
+
+#Para averiguar la ruta donde esta el documento se usa getwd() en la consola, se agrega el nombre de la carpeta (datos) y el nombre del objeto en excel. Se termina con '.xlsx'
